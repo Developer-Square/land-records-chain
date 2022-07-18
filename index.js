@@ -2,7 +2,7 @@ const express = require('express');
 const { MongoClient, ObjectId } = require("mongodb");
 const SHA256 = require('crypto-js/sha256');
 const { randomInt } = require('crypto');
-const bodyParser = require('body-parser')
+const bodyParser = require('body-parser');
 
 const app = express();
 // parse application/x-www-form-urlencoded
@@ -55,7 +55,7 @@ class Block {
 /**
  * The Genesis Block. The first block of data that is processed and validated to form a new blockchain, often referred to as block 0 or block 1. https://coinmarketcap.com/alexandria/glossary/genesis-block
  */
-const genesisBlock = new Block({ owner: '0', ownerId: '0', referenceNumber: '0', size: '0', price: '0' });
+const genesisBlock = new Block({ referenceNumber: '0', size: '0', price: 0 });
 
 /**
  * Checks whether the current blockchain is valid
