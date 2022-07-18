@@ -197,18 +197,23 @@ app.post('/landRecords', async (req, res) => {
     try {
         const lastRecord = await Chain.find({}).sort({ _id: -1 }).limit(1).toArray();
         const recordsCount = await Chain.estimatedDocumentCount();
-        let newBlock = new Block(req.body);
-        newBlock.ownerId = new ObjectId(req.body.ownerId);
-        newBlock.index = recordsCount;
-        newBlock.previousHash = lastRecord[0].previousHash;
-        newBlock.hash = newBlock.calculateHash();
-        if (recordsCount ===  0) {
-            const blocks = [genesisBlock, newBlock];
-            await Chain.insertMany(blocks);
-            res.status(201).send({ message: 'record added successfully'});
+        const user = await Users.findOne({ _id: new ObjectId(req.body.ownerId )});
+        if (!user) {
+            res.status(404).send({ message: 'User not found'});
         } else {
-            await Chain.insertOne(newBlock);
-            res.status(201).send({ message: 'record added successfully'});
+            let newBlock = new Block(req.body);
+            newBlock.ownerId = new ObjectId(req.body.ownerId);
+            newBlock.index = recordsCount;
+            newBlock.previousHash = lastRecord[0].previousHash;
+            newBlock.hash = newBlock.calculateHash();
+            if (recordsCount ===  0) {
+                const blocks = [genesisBlock, newBlock];
+                await Chain.insertMany(blocks);
+                res.status(201).send({ message: 'record added successfully'});
+            } else {
+                await Chain.insertOne(newBlock);
+                res.status(201).send({ message: 'record added successfully'});
+            }
         }
     } catch(e) {
         console.log(e);
