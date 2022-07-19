@@ -37,8 +37,8 @@ class Block {
     constructor(data){
         this.index = 0;
         this.timestamp = new Date().getTime();
-        this.owner = '';
-        this.ownerId = '';
+        this.owner = null;
+        this.ownerId = null;
         this.referenceNumber = data.referenceNumber;
         this.size = data.size;
         this.price = data.price;
@@ -134,14 +134,11 @@ const isBlockchainValid = async () => {
 app.post('/seed', async (req, res) => {
     try {
         await Users.insertMany(req.body.users);
-        const users = await Users.find({}).toArray();
         const blocks = [genesisBlock];
         for (let i = 0; i < req.body.records.length; i++) {
             let newBlock = new Block(req.body.records[i]);
             newBlock.index = i + 1;
             newBlock.previousHash = blocks[i].hash;
-            newBlock.owner = users[0].name;
-            newBlock.ownerId = users[0]._id;
             newBlock.hash = newBlock.calculateHash();
             blocks.push(newBlock);
         }
@@ -188,29 +185,29 @@ app.get('/users', async (req, res) => {
  * {
  *  "referenceNumber": "LK23GH6",
  *  "size": "10Ha",
- *  "price": 100000,
- *  "owner": "Juliet",
- *  "ownerId": "62d5211d95b29ef5e67083e7",
+ *  "price": 100000
  * }
  */
 app.post('/landRecords', async (req, res) => {
     try {
         const lastRecord = await Chain.find({}).sort({ _id: -1 }).limit(1).toArray();
         const recordsCount = await Chain.estimatedDocumentCount();
-        const user = await Users.findOne({ _id: new ObjectId(req.body.ownerId )});
-        if (!user) {
-            res.status(404).send({ message: 'User not found'});
+        const recordExists = await Chain.findOne({ referenceNumber: req.body.referenceNumber });
+        if (recordExists) {
+            res.status(400).send({ message: 'The record exists in the database' });
         } else {
             let newBlock = new Block(req.body);
-            newBlock.ownerId = new ObjectId(req.body.ownerId);
-            newBlock.index = recordsCount;
-            newBlock.previousHash = lastRecord[0].previousHash;
-            newBlock.hash = newBlock.calculateHash();
             if (recordsCount ===  0) {
+                newBlock.index = 1;
+                newBlock.previousHash = genesisBlock.hash;
+                newBlock.hash = newBlock.calculateHash();
                 const blocks = [genesisBlock, newBlock];
                 await Chain.insertMany(blocks);
                 res.status(201).send({ message: 'record added successfully'});
             } else {
+                newBlock.index = recordsCount;
+                newBlock.previousHash = lastRecord[0].hash;
+                newBlock.hash = newBlock.calculateHash();
                 await Chain.insertOne(newBlock);
                 res.status(201).send({ message: 'record added successfully'});
             }
@@ -279,7 +276,7 @@ app.post('/transfer/:referenceNumber/:userId', async (req, res) => {
                 res.status(404).send({ message: 'Land not found'});
             } else if (!user) {
                 res.status(404).send({ message: 'User not found'});
-            } else if (userId === records[0].ownerId.toHexString()) {
+            } else if (records[0].ownerId && userId === records[0].ownerId.toHexString()) {
                 res.status(400).send({ message: 'Sorry, you can"t transfer land to the existing owner'});
             } else if (user.credit < records[0].price) {
                 res.status(400).send({ message: 'Sorry, you don"t have enough credit to buy this land'});
