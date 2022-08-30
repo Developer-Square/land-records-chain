@@ -159,8 +159,8 @@ app.post('/seed', async (req, res) => {
  */
 app.post('/users', async (req, res) => {
     try {
-        await Users.insertOne(req.body);
-        res.status(201).send({ message: 'user added successfully'});;
+        const result = await Users.insertOne(req.body);
+        res.status(201).send({ message: 'user added successfully', id: result.insertedId });;
     } catch(e) {
         console.log(e);
         res.status(500).send({ error: e});
