@@ -11,7 +11,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 // parse application/json
 app.use(bodyParser.json());
 
-const port = 3000;
+const port = 8000;
 const mongoDbUri = 'mongodb://127.0.0.1:27017';
 
 const client = new MongoClient(mongoDbUri);
@@ -174,6 +174,20 @@ app.get('/users', async (req, res) => {
     try {
         const users = await Users.find({}).toArray();
         res.status(200).send({ users });
+    } catch(e) {
+        console.log(e);
+        res.status(500).send({ error: e});
+    }
+});
+
+/**
+ * API for getting one user
+ */
+ app.get('/users/:userId', async (req, res) => {
+    const { userId } = req.params;
+    try {
+        const user = await Users.findOne({ _id: new ObjectId(userId) });
+        res.status(200).send({ user });
     } catch(e) {
         console.log(e);
         res.status(500).send({ error: e});
