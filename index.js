@@ -13,7 +13,7 @@ app.use(cors());
 // parse application/json
 app.use(bodyParser.json());
 
-const port = 3500;
+const port = 8000;
 const mongoDbUri = "mongodb://127.0.0.1:27017";
 
 const client = new MongoClient(mongoDbUri);
@@ -39,8 +39,8 @@ class Block {
 	constructor(data) {
 		this.index = 0;
 		this.timestamp = new Date().getTime();
-		this.owner = null;
-		this.ownerId = null;
+		this.owner = data.owner || null;
+		this.ownerId = data.ownerId || null;
 		this.referenceNumber = data.referenceNumber;
 		this.size = data.size;
 		this.price = data.price;
