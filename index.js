@@ -1,9 +1,9 @@
-const express = require("express");
-const { MongoClient, ObjectId } = require("mongodb");
-const SHA256 = require("crypto-js/sha256");
-const { randomInt } = require("crypto");
-const bodyParser = require("body-parser");
-const cors = require("cors");
+const express = require('express');
+const { MongoClient, ObjectId } = require('mongodb');
+const SHA256 = require('crypto-js/sha256');
+const { randomInt } = require('crypto');
+const bodyParser = require('body-parser');
+const cors = require('cors');
 
 const app = express();
 // parse application/x-www-form-urlencoded
@@ -14,12 +14,12 @@ app.use(cors());
 app.use(bodyParser.json());
 
 const port = 8000;
-const mongoDbUri = "mongodb://127.0.0.1:27017";
+const mongoDbUri = 'mongodb://127.0.0.1:27017';
 
 const client = new MongoClient(mongoDbUri);
-const database = client.db("land-records");
-const Users = database.collection("users");
-const Chain = database.collection("chain");
+const database = client.db('land-records');
+const Users = database.collection('users');
+const Chain = database.collection('chain');
 
 /**
  * Class definition of a single block of the blockchain
@@ -44,7 +44,7 @@ class Block {
 		this.referenceNumber = data.referenceNumber;
 		this.size = data.size;
 		this.price = data.price;
-		this.previousHash = "0";
+		this.previousHash = '0';
 		this.hash = this.calculateHash();
 		this.nonce = randomInt(0, 1000000);
 	}
@@ -67,7 +67,7 @@ class Block {
 /**
  * The Genesis Block. The first block of data that is processed and validated to form a new blockchain, often referred to as block 0 or block 1. https://coinmarketcap.com/alexandria/glossary/genesis-block
  */
-const genesisBlock = new Block({ referenceNumber: "0", size: "0", price: 0 });
+const genesisBlock = new Block({ referenceNumber: '0', size: '0', price: 0 });
 
 /**
  * Checks whether the current blockchain is valid
@@ -147,7 +147,7 @@ const isBlockchainValid = async () => {
     ]
 }
  */
-app.post("/seed", async (req, res) => {
+app.post('/seed', async (req, res) => {
 	try {
 		await Users.insertMany(req.body.users);
 		const blocks = [genesisBlock];
@@ -159,7 +159,7 @@ app.post("/seed", async (req, res) => {
 			blocks.push(newBlock);
 		}
 		await Chain.insertMany(blocks);
-		res.status(201).send({ message: "database seeded successfully" });
+		res.status(201).send({ message: 'database seeded successfully' });
 	} catch (e) {
 		console.log(e);
 		res.status(500).send({ error: e });
@@ -173,12 +173,12 @@ app.post("/seed", async (req, res) => {
  *  "credit": 1000000
  * }
  */
-app.post("/users", async (req, res) => {
+app.post('/users', async (req, res) => {
 	try {
 		const result = await Users.insertOne(req.body);
 		res
 			.status(201)
-			.send({ id: result.insertedId, message: "user added successfully" });
+			.send({ id: result.insertedId, message: 'user added successfully' });
 	} catch (e) {
 		console.log(e);
 		res.status(500).send({ error: e });
@@ -188,7 +188,7 @@ app.post("/users", async (req, res) => {
 /**
  * API for getting all users
  */
-app.get("/users", async (req, res) => {
+app.get('/users', async (req, res) => {
 	try {
 		const users = await Users.find({}).toArray();
 		res.status(200).send({ users });
@@ -201,7 +201,7 @@ app.get("/users", async (req, res) => {
 /**
  * API for getting a single user
  */
-app.get("/users/:userId", async (req, res) => {
+app.get('/users/:userId', async (req, res) => {
 	const { userId } = req.params;
 	try {
 		const user = await Users.findOne({ _id: new ObjectId(userId) });
@@ -220,7 +220,7 @@ app.get("/users/:userId", async (req, res) => {
  *  "price": 100000
  * }
  */
-app.post("/landRecords", async (req, res) => {
+app.post('/landRecords', async (req, res) => {
 	try {
 		const lastRecord = await Chain.find({})
 			.sort({ _id: -1 })
@@ -231,7 +231,7 @@ app.post("/landRecords", async (req, res) => {
 			referenceNumber: req.body.referenceNumber,
 		});
 		if (recordExists) {
-			res.status(400).send({ message: "The record exists in the database" });
+			res.status(400).send({ message: 'The record exists in the database' });
 		} else {
 			let newBlock = new Block(req.body);
 			if (recordsCount === 0) {
@@ -240,13 +240,13 @@ app.post("/landRecords", async (req, res) => {
 				newBlock.hash = newBlock.calculateHash();
 				const blocks = [genesisBlock, newBlock];
 				await Chain.insertMany(blocks);
-				res.status(201).send({ message: "record added successfully" });
+				res.status(201).send({ message: 'record added successfully' });
 			} else {
 				newBlock.index = recordsCount;
 				newBlock.previousHash = lastRecord[0].hash;
 				newBlock.hash = newBlock.calculateHash();
 				await Chain.insertOne(newBlock);
-				res.status(201).send({ message: "record added successfully" });
+				res.status(201).send({ message: 'record added successfully' });
 			}
 		}
 	} catch (e) {
@@ -259,7 +259,7 @@ app.post("/landRecords", async (req, res) => {
  * API for getting all land records
  * Returns an error is the blockchain has been compromised
  */
-app.get("/landRecords", async (req, res) => {
+app.get('/landRecords', async (req, res) => {
 	try {
 		const valid = await isBlockchainValid();
 		if (!valid) {
@@ -280,7 +280,7 @@ app.get("/landRecords", async (req, res) => {
  * API for getting land records by reference Number
  * @example localhost:3000/landRecords/LK23GH6
  */
-app.get("/landRecords/:referenceNumber", async (req, res) => {
+app.get('/landRecords/:referenceNumber', async (req, res) => {
 	try {
 		const { referenceNumber } = req.params;
 		const valid = await isBlockchainValid();
@@ -304,14 +304,14 @@ app.get("/landRecords/:referenceNumber", async (req, res) => {
  * API for transferring land from one owner to another
  * @example localhost:3000/transfer/LK23GH6/62d5211d95b29ef5e67083e7
  */
-app.post("/transfer/:referenceNumber/:userId", async (req, res) => {
+app.post('/transfer/:referenceNumber/:userId', async (req, res) => {
 	try {
 		const { referenceNumber, userId } = req.params;
 		const valid = await isBlockchainValid();
 		if (!valid) {
 			res
 				.status(404)
-				.send({ message: "Sorry, the blockchain has been compromised" });
+				.send({ message: 'Sorry, the blockchain has been compromised' });
 		} else {
 			const recordsCount = await Chain.estimatedDocumentCount();
 			const records = await Chain.find({ referenceNumber })
@@ -323,9 +323,9 @@ app.post("/transfer/:referenceNumber/:userId", async (req, res) => {
 				.toArray();
 			const user = await Users.findOne({ _id: new ObjectId(userId) });
 			if (records.length === 0) {
-				res.status(404).send({ message: "Land not found" });
+				res.status(404).send({ message: 'Land not found' });
 			} else if (!user) {
-				res.status(404).send({ message: "User not found" });
+				res.status(404).send({ message: 'User not found' });
 			} else if (
 				records[0].ownerId &&
 				userId === records[0].ownerId.toHexString()
