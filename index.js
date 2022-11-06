@@ -214,7 +214,7 @@ app.get('/users/:userId', async (req, res) => {
 });
 
 /**
- * API for creating a single land record
+ * API for creating a single land record //
  * {
  *  "referenceNumber": "LK23GH6",
  *  "size": "10Ha",
