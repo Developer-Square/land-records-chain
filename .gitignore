@@ -1,3 +1,4 @@
 # installed packages
 node_modules
 .vscode
+.env
