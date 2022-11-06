@@ -14,7 +14,7 @@ app.use(cors());
 // parse application/json
 app.use(bodyParser.json());
 
-const port = 3500;
+const port = 3500 || process.env.PORT;
 const mongoDbUri = process.env.MONGODB_URI;
 
 const client = new MongoClient(mongoDbUri);
